@@ -22,6 +22,9 @@ type VirtioVsock config.VirtioVsock
 type VirtioInput config.VirtioInput
 type VirtioGPU config.VirtioGPU
 
+// - ref: https://github.com/lima-vm/lima/pull/2026
+const diskImageCachingMode = vz.DiskImageCachingModeCached
+
 func (dev *VirtioBlk) toVz() (vz.StorageDeviceConfiguration, error) {
 	var storageConfig StorageConfig = StorageConfig(dev.StorageConfig)
 	attachment, err := storageConfig.toVz()
@@ -275,7 +278,7 @@ func (config *StorageConfig) toVz() (vz.StorageDeviceAttachment, error) {
 	if config.ImagePath == "" {
 		return nil, fmt.Errorf("missing mandatory 'path' option for %s device", config.DevName)
 	}
-	return vz.NewDiskImageStorageDeviceAttachment(config.ImagePath, config.ReadOnly)
+	return vz.NewDiskImageStorageDeviceAttachmentWithCacheAndSync(config.ImagePath, config.ReadOnly, diskImageCachingMode, vz.DiskImageSynchronizationModeFsync)
 }
 
 func (dev *USBMassStorage) toVz() (vz.StorageDeviceConfiguration, error) {
